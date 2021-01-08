@@ -57,13 +57,6 @@ public class GetContactDemoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.contact_fragment, container, false);
-        Button btn = (Button)view.findViewById(R.id.l_server);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new JSONTask().execute("http://192.249.18.166:3000/users");//AsyncTask 시작시킴
-            }
-        });
 
         ListView listView = (ListView) view.findViewById(R.id.listview1);
         adapter = new PhonenumberAdaptor(getContext(), phonenumbers);

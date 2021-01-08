@@ -5,8 +5,10 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -21,6 +23,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -71,6 +74,11 @@ public class PhoneNumberFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         phonenumbers = new ArrayList<>();
         local_phonenumbers = new ArrayList<>();
@@ -78,6 +86,7 @@ public class PhoneNumberFragment extends Fragment {
         View view = inflater.inflate(R.layout.contact_fragment, container, false);
 
         ListView listView = (ListView) view.findViewById(R.id.listview1);
+
         adapter = new PhonenumberAdaptor(getContext(), phonenumbers);
         listView.setAdapter(adapter);
 
@@ -94,30 +103,6 @@ public class PhoneNumberFragment extends Fragment {
             }
         });
 
-        Button btn1 = (Button)view.findViewById(R.id.u_server);
-        btn1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new JSONTask1().execute("http://192.249.18.166:3000/post");//AsyncTask 시작시킴
-            }
-        });
-
-        Button btn2 = (Button)view.findViewById(R.id.l_server);
-        btn2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new JSONTask2().execute("http://192.249.18.166:3000/users");//AsyncTask 시작시킴
-            }
-        });
-
-        Button btn3 = (Button)view.findViewById(R.id.l_local);
-        btn3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                read_contact();
-            }
-        });
-
         while (!CheckPermission(getContext(), permissons[0]) || !CheckPermission(getContext(), permissons[1]))
             RequestPermission(getActivity(), permissons, REQUEST_RUNTIME_PERMISSION);
 
@@ -127,7 +112,7 @@ public class PhoneNumberFragment extends Fragment {
         fab.setOnClickListener(this::onClick);
         itemFab.setOnClickListener(this::onClick);
         deleteFab.setOnClickListener(this::onClick);
-
+        read_contact();
         return view;
     }
 
@@ -404,7 +389,6 @@ public class PhoneNumberFragment extends Fragment {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         String filename0 = "Phonenumbers.json";
         try {
             try (FileOutputStream fos = getContext().openFileOutput(filename0, Context.MODE_PRIVATE)) {
