@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -9,16 +10,22 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,8 +53,15 @@ public class PhoneNumberFragment extends Fragment {
     String[] permissons = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS};
 
     public static ArrayList<Phonenumber> phonenumbers;
+    public static ArrayList<Phonenumber> server_phonenumbers;
+    public static ArrayList<Phonenumber> local_phonenumbers;
 
     PhonenumberAdaptor adapter;
+
+    FloatingActionButton fab;
+    FloatingActionButton itemFab;
+    FloatingActionButton deleteFab;
+    boolean isOpen=false;
     public static PhoneNumberFragment newInstance(int index) {
         PhoneNumberFragment fragment = new PhoneNumberFragment();
         Bundle bundle = new Bundle();
@@ -59,11 +73,26 @@ public class PhoneNumberFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         phonenumbers = new ArrayList<>();
+        local_phonenumbers = new ArrayList<>();
+        server_phonenumbers = new ArrayList<>();
         View view = inflater.inflate(R.layout.contact_fragment, container, false);
 
         ListView listView = (ListView) view.findViewById(R.id.listview1);
         adapter = new PhonenumberAdaptor(getContext(), phonenumbers);
         listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                LinearLayout hidden = (LinearLayout) view.findViewById(R.id.hidden);
+                if (!hidden.isShown()) {
+                    hidden.setVisibility(view.VISIBLE);
+                }else {
+                    hidden.setVisibility(view.GONE);
+                }
+
+            }
+        });
 
         Button btn1 = (Button)view.findViewById(R.id.u_server);
         btn1.setOnClickListener(new View.OnClickListener() {
@@ -92,13 +121,46 @@ public class PhoneNumberFragment extends Fragment {
         while (!CheckPermission(getContext(), permissons[0]) || !CheckPermission(getContext(), permissons[1]))
             RequestPermission(getActivity(), permissons, REQUEST_RUNTIME_PERMISSION);
 
+        fab = (FloatingActionButton) view.findViewById(R.id.mainFab);
+        itemFab = (FloatingActionButton) view.findViewById(R.id.insertfab);
+        deleteFab = (FloatingActionButton) view.findViewById(R.id.deletefab);
+        fab.setOnClickListener(this::onClick);
+        itemFab.setOnClickListener(this::onClick);
+        deleteFab.setOnClickListener(this::onClick);
+
         return view;
     }
 
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.mainFab:
+                if(!isOpen){
+                    ObjectAnimator.ofFloat(itemFab, "translationY", -400f).start();
+                    ObjectAnimator.ofFloat(deleteFab, "translationY", -200f).start();
+                    isOpen = true;
+                }
+                else{
+                    ObjectAnimator.ofFloat(itemFab, "translationY", 0f).start();
+                    ObjectAnimator.ofFloat(deleteFab, "translationY", 0f).start();
+                    isOpen = false;
+                }
+                break;
+            case R.id.deletefab:
+                new JSONTask1().execute("http://192.249.18.166:3000/post");
+            case R.id.insertfab:
+                new JSONTask2().execute("http://192.249.18.166:3000/users");
+                break;
+        }
+    }
+
+    /* put contact server */
     public class JSONTask1 extends AsyncTask<String, String, String> {
 
         @Override
         protected String doInBackground(String... urls) {
+            for(int i=0; i<phonenumbers.size(); i++) {
+                phonenumbers.get(i).setAtServer(true);
+            }
             try {
                 JSONObject jsonObject = new JSONObject();
                 JSONArray newArray0 = new JSONArray();
@@ -177,6 +239,7 @@ public class PhoneNumberFragment extends Fragment {
         }
     }
 
+    /* get contacts from server */
     public class JSONTask2 extends AsyncTask<String, String, String> {
 
         @Override
@@ -222,14 +285,27 @@ public class PhoneNumberFragment extends Fragment {
             JSONParser parser = new JSONParser();
             try {
                 org.json.simple.JSONObject jsonObj = (org.json.simple.JSONObject)parser.parse(result);
-                System.out.println(jsonObj);
                 org.json.simple.JSONArray contactArray = (org.json.simple.JSONArray) jsonObj.get("Contacts");
                 for (int i = 0; i < contactArray.size(); i++) {
                     jsonObj =  (org.json.simple.JSONObject)contactArray.get(i);
                     //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
-                    phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number")));
+                    server_phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number"), false, true));
                     adapter.notifyDataSetChanged();
                 }
+                boolean dup=false;
+                for (int i=0; i<server_phonenumbers.size(); i++) {
+                    dup=false;
+                    for (int j=0;  j<phonenumbers.size(); j++) {
+                        if (server_phonenumbers.get(i).getName().equalsIgnoreCase(phonenumbers.get(j).getName()) && server_phonenumbers.get(i).getNumber().equalsIgnoreCase(phonenumbers.get(j).getNumber())) {
+                            dup=true;
+                            phonenumbers.get(j).setAtServer(true);
+                        }
+                    }
+                    if (!dup) {
+                        phonenumbers.add(new Phonenumber(server_phonenumbers.get(i).getName(), server_phonenumbers.get(i).getNumber(), false, true));
+                    }
+                }
+                adapter.notifyDataSetChanged();
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -237,6 +313,7 @@ public class PhoneNumberFragment extends Fragment {
         }
     }
 
+    /* permission for access local contact */
     public boolean CheckPermission(Context context, String Permission) {
         if (ContextCompat.checkSelfPermission(context,
                 Permission) == PackageManager.PERMISSION_GRANTED) {
@@ -245,7 +322,6 @@ public class PhoneNumberFragment extends Fragment {
             return false;
         }
     }
-
     public void RequestPermission(Activity thisActivity, String[] Permission, int Code) {
         if (ContextCompat.checkSelfPermission(thisActivity,
                 Permission[0])
@@ -259,6 +335,7 @@ public class PhoneNumberFragment extends Fragment {
         }
     }
 
+    /* get contacts from local */
     private void read_contact() {
 
         ContentResolver cr = getActivity().getContentResolver();
@@ -282,9 +359,23 @@ public class PhoneNumberFragment extends Fragment {
                         String phoneNo = pCur.getString(pCur.getColumnIndex(
                                 ContactsContract.CommonDataKinds.Phone.NUMBER));
                         phoneNo = phoneNo.replaceAll("-", "");
-                        phonenumbers.add(new Phonenumber(name, phoneNo));
+                        local_phonenumbers.add(new Phonenumber(name, phoneNo, true, false));
                         adapter.notifyDataSetChanged();
                     }
+                    boolean dup=false;
+                    for (int i=0; i<local_phonenumbers.size(); i++) {
+                        dup=false;
+                        for (int j=0;  j<phonenumbers.size(); j++) {
+                            if (local_phonenumbers.get(i).getName().equalsIgnoreCase(phonenumbers.get(j).getName()) && local_phonenumbers.get(i).getNumber().equalsIgnoreCase(phonenumbers.get(j).getNumber())) {
+                                dup=true;
+                                phonenumbers.get(j).setAtLocal(true);
+                            }
+                        }
+                        if (!dup) {
+                            phonenumbers.add(new Phonenumber(local_phonenumbers.get(i).getName(), local_phonenumbers.get(i).getNumber(), true, false));
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
                     pCur.close();
                 }
             }

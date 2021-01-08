@@ -122,7 +122,7 @@ public class GetContactDemoFragment extends Fragment {
                 for (int i = 0; i < contactArray.size(); i++) {
                     jsonObj =  (JSONObject)contactArray.get(i);
                     //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
-                    phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number")));
+                    phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number"), true, true));
                     adapter.notifyDataSetChanged();
                 }
             } catch (ParseException e) {
