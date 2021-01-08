@@ -61,7 +61,7 @@ public class GetContactDemoFragment extends Fragment {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new JSONTask().execute("http://192.249.18.166:3000/users");//AsyncTask 시작시킴
+                new JSONTask().execute("http://192.249.18.222:3000/users");//AsyncTask 시작시킴
             }
         });
 

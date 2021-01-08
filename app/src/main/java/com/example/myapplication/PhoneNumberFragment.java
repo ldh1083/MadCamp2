@@ -4,18 +4,24 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -57,19 +63,41 @@ public class PhoneNumberFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         phonenumbers = new ArrayList<>();
         View view = inflater.inflate(R.layout.contact_fragment, container, false);
 
         ListView listView = (ListView) view.findViewById(R.id.listview1);
+
         adapter = new PhonenumberAdaptor(getContext(), phonenumbers);
         listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                LinearLayout hidden = (LinearLayout) view.findViewById(R.id.hidden);
+                Log.d("dfdfdf", "dddddddTOUCHTOUCHd");
+                if (!hidden.isShown()) {
+                    hidden.setVisibility(view.VISIBLE);
+                    Log.d("dfdfdf", "visible");
+                }else {
+                    hidden.setVisibility(view.GONE);
+                    Log.d("dfdfdf", "invisible");
+                }
+
+            }
+        });
 
         Button btn1 = (Button)view.findViewById(R.id.u_server);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new JSONTask1().execute("http://192.249.18.166:3000/post");//AsyncTask 시작시킴
+                new JSONTask1().execute("http://192.249.18.222:3000/post");//AsyncTask 시작시킴
             }
         });
 
@@ -77,7 +105,7 @@ public class PhoneNumberFragment extends Fragment {
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new JSONTask2().execute("http://192.249.18.166:3000/users");//AsyncTask 시작시킴
+                new JSONTask2().execute("http://192.249.18.222:3000/users");//AsyncTask 시작시킴
             }
         });
 
@@ -313,7 +341,6 @@ public class PhoneNumberFragment extends Fragment {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         String filename0 = "Phonenumbers.json";
         try {
             try (FileOutputStream fos = getContext().openFileOutput(filename0, Context.MODE_PRIVATE)) {
