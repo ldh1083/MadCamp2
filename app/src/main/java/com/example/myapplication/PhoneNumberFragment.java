@@ -2,13 +2,16 @@ package com.example.myapplication;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
@@ -17,11 +20,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -72,26 +78,23 @@ public class PhoneNumberFragment extends Fragment {
         phonenumbers = new ArrayList<>();
         View view = inflater.inflate(R.layout.contact_fragment, container, false);
 
-        ListView listView = (ListView) view.findViewById(R.id.listview1);
-
         adapter = new PhonenumberAdaptor(getContext(), phonenumbers);
-        listView.setAdapter(adapter);
 
+        ListView listView = (ListView) view.findViewById(R.id.listview1);
+        listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 LinearLayout hidden = (LinearLayout) view.findViewById(R.id.hidden);
-                Log.d("dfdfdf", "dddddddTOUCHTOUCHd");
                 if (!hidden.isShown()) {
                     hidden.setVisibility(view.VISIBLE);
-                    Log.d("dfdfdf", "visible");
                 }else {
                     hidden.setVisibility(view.GONE);
-                    Log.d("dfdfdf", "invisible");
                 }
-
             }
         });
+
+
 
         Button btn1 = (Button)view.findViewById(R.id.u_server);
         btn1.setOnClickListener(new View.OnClickListener() {
@@ -123,7 +126,9 @@ public class PhoneNumberFragment extends Fragment {
         return view;
     }
 
-    public class JSONTask1 extends AsyncTask<String, String, String> {
+
+
+        public class JSONTask1 extends AsyncTask<String, String, String> {
 
         @Override
         protected String doInBackground(String... urls) {

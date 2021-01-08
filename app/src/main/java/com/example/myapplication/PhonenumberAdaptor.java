@@ -1,25 +1,26 @@
 package com.example.myapplication;
 
+import com.example.myapplication.PhoneNumberFragment;
+
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.baoyz.swipemenulistview.SwipeMenu;
-import com.baoyz.swipemenulistview.SwipeMenuCreator;
-import com.baoyz.swipemenulistview.SwipeMenuItem;
-import com.baoyz.swipemenulistview.SwipeMenuListView;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -52,6 +53,9 @@ public class PhonenumberAdaptor extends ArrayAdapter<Phonenumber> {
         call.setBackgroundColor(Color.WHITE);
         msg.setBackgroundColor(Color.WHITE);
         update.setBackgroundColor(Color.WHITE);
+        //Button update = (Button) view.findViewById(R.id.update);
+
+
 
         call.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -69,12 +73,13 @@ public class PhonenumberAdaptor extends ArrayAdapter<Phonenumber> {
             }
         });
 
+        update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+            }
+        });
         return view;
     }
-
-
-
-
 
 }
