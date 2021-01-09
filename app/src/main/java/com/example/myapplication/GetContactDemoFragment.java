@@ -57,13 +57,6 @@ public class GetContactDemoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.contact_fragment, container, false);
-        Button btn = (Button)view.findViewById(R.id.l_server);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new JSONTask().execute("http://192.249.18.222:3000/users");//AsyncTask 시작시킴
-            }
-        });
 
         ListView listView = (ListView) view.findViewById(R.id.listview1);
         adapter = new PhonenumberAdaptor(getContext(), phonenumbers);
@@ -122,7 +115,7 @@ public class GetContactDemoFragment extends Fragment {
                 for (int i = 0; i < contactArray.size(); i++) {
                     jsonObj =  (JSONObject)contactArray.get(i);
                     //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
-                    phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number")));
+                    phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number"), true, true));
                     adapter.notifyDataSetChanged();
                 }
             } catch (ParseException e) {

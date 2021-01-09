@@ -22,7 +22,7 @@ public class TabsAdaptor extends FragmentPagerAdapter {
             case 0:
                 return PhoneNumberFragment.newInstance(position + 1);
             case 1:
-                return RemainFragment.newInstance(position + 1);
+                return galleryFragment.newInstance(position + 1);
             case 2:
                 return GetContactDemoFragment.newInstance(position + 1);
             default:

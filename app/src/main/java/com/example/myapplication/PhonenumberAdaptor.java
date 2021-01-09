@@ -1,26 +1,18 @@
 package com.example.myapplication;
 
-import com.example.myapplication.PhoneNumberFragment;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 
@@ -43,6 +35,7 @@ public class PhonenumberAdaptor extends ArrayAdapter<Phonenumber> {
         nameTextView.setText(phonenumbers.get(position).getName());
         final TextView numberTextView = (TextView) view.findViewById(R.id.number);
         numberTextView.setText(phonenumbers.get(position).getNumber());
+
         LinearLayout hidden = (LinearLayout) view.findViewById(R.id.hidden);
         hidden.setVisibility(view.GONE);
 
@@ -73,12 +66,30 @@ public class PhonenumberAdaptor extends ArrayAdapter<Phonenumber> {
             }
         });
 
+
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
             }
         });
+
+        ImageView iv_local = view.findViewById(R.id.at_local);
+        if (phonenumbers.get(position).getAtLocal()) {
+            iv_local.setImageResource(R.drawable.v);
+        }
+        else {
+            iv_local.setImageResource(R.drawable.x);
+        }
+
+        ImageView iv_server = view.findViewById(R.id.at_server);
+        if (phonenumbers.get(position).getAtServer()) {
+            iv_server.setImageResource(R.drawable.v);
+        }
+        else {
+            iv_server.setImageResource(R.drawable.x);
+        }
+
         return view;
     }
 
