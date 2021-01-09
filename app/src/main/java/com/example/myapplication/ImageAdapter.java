@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ public class ImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private static OnItemClickListener onItemClickListener;
     private final static int IMAGE_LIST = 0;
     private final static int IMAGE_PICKER = 1;
+    public String uri=null;
 
     public ImageAdapter(Context context, ArrayList<ImageModel> imageList) {
         this.context = context;
@@ -64,7 +66,10 @@ public class ImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             ImagePickerViewHolder viewHolder = (ImagePickerViewHolder) holder;
             viewHolder.image.setImageResource(imageList.get(position).getResImg());
             viewHolder.title.setText(imageList.get(position).getTitle());
+
+
         }
+
     }
 
     @Override
@@ -78,14 +83,37 @@ public class ImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
         public ImageListViewHolder(View itemView) {
             super(itemView);
+
             image = itemView.findViewById(R.id.image);
             checkBox = itemView.findViewById(R.id.circle);
+
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    onItemClickListener.onItemClick(getAdapterPosition(), v);
+                    return false;
+                }
+            });
+
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    onItemClickListener.onItemClick(getAdapterPosition(), v);
+                    context.startActivity(new Intent(context, FullImageActivity.class).putExtra("image",
+                             imageList.get(getAdapterPosition()).getImage()
+                              ));
                 }
             });
+
+
+
+
+//            itemView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    //context.startActivity(new Intent(context, FullImageActivity.class).putExtra("image", stringArrayList.get(position)));
+//                }
+
         }
     }
 
@@ -103,6 +131,7 @@ public class ImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                     onItemClickListener.onItemClick(getAdapterPosition(), v);
                 }
             });
+
         }
     }
 

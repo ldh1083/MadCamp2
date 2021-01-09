@@ -53,7 +53,7 @@ import java.util.Collections;
 public class PhoneNumberFragment extends Fragment {
     private static final String ARG_SECTION_NUMBER = "section_number";
     private static final int REQUEST_RUNTIME_PERMISSION = 123;
-    String[] permissons = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS};
+    String[] permissons = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.CALL_PHONE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     public static ArrayList<Phonenumber> phonenumbers;
     public static ArrayList<Phonenumber> server_phonenumbers;
@@ -103,7 +103,7 @@ public class PhoneNumberFragment extends Fragment {
             }
         });
 
-        while (!CheckPermission(getContext(), permissons[0]) || !CheckPermission(getContext(), permissons[1]))
+        while (!CheckPermission(getContext(), permissons[0]) || !CheckPermission(getContext(), permissons[1]) || !CheckPermission(getContext(), permissons[2]) || !CheckPermission(getContext(), permissons[3]))
             RequestPermission(getActivity(), permissons, REQUEST_RUNTIME_PERMISSION);
 
         fab = (FloatingActionButton) view.findViewById(R.id.mainFab);
@@ -368,35 +368,5 @@ public class PhoneNumberFragment extends Fragment {
         if(cur!=null){
             cur.close();
         }
-        /*JSONObject jsonObject50 = new JSONObject();
-        JSONArray newArray0 = new JSONArray();
-        try {
-            for (int i = 0; i < phonenumbers.size(); i++) {
-                JSONObject jsonObject1 = new JSONObject();
-                try {
-                    jsonObject1.put("name", phonenumbers.get(i).getName());
-                    jsonObject1.put("number", phonenumbers.get(i).getNumber());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                newArray0.put(jsonObject1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            jsonObject50.put("Contacts", newArray0);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        String filename0 = "Phonenumbers.json";
-        try {
-            try (FileOutputStream fos = getContext().openFileOutput(filename0, Context.MODE_PRIVATE)) {
-                fos.write(jsonObject50.toString().getBytes());
-                fos.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
     }
 }
