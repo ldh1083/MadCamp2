@@ -1,6 +1,6 @@
 package com.example.myapplication;
 
-public class Phonenumber {
+public class Phonenumber implements Comparable<Phonenumber> {
     private String name;
     private String number;
     private boolean at_local;
@@ -12,6 +12,9 @@ public class Phonenumber {
         this.at_local = at_local;
         this.at_server = at_server;
     }
+
+    @Override
+    public int compareTo(Phonenumber phonenumber) { return this.name.compareTo(phonenumber.name); }
 
     public String getName() {
         return name;

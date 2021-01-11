@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:descendantFocusability="blocksDescendants"
     android:padding="5dp">
 
@@ -12,20 +12,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        tools:ignore="MissingConstraints"
-        android:padding="10dp">
+        android:padding="3dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            tools:ignore="MissingConstraints">
+            android:orientation="horizontal">
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:id="@+id/image_contact"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/unnamed"
+                android:layout_marginRight="10dp"/>
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_weight="8"
-                android:padding="10dp">
+                android:layout_weight="8">
                 <TextView
                     android:id="@+id/txt_name"
                     android:layout_width="wrap_content"
@@ -45,26 +48,34 @@
                 android:layout_height="match_parent"
                 android:layout_weight="3"
                 android:orientation="horizontal">
-                <ImageView
-                    android:id="@+id/at_local"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/x"
-                    android:layout_gravity="center"
-                    android:layout_marginRight="25dp"/>
-                <ImageView
-                    android:id="@+id/at_server"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/x"
-                    android:layout_gravity="center"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center">
+                    <ImageView
+                        android:id="@+id/at_local"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/x"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center">
+                    <ImageView
+                        android:id="@+id/at_server"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/x"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="#000000"
-            android:textSize="15dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -101,7 +112,7 @@
                 android:id="@+id/update"
                 android:shadowColor="@color/white"
                 android:textColor="@color/black"
-                android:text="NULL"/>
+                android:text="SAVE"/>
         </LinearLayout>
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

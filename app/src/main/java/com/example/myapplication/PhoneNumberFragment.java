@@ -12,12 +12,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -53,7 +56,7 @@ import java.util.Collections;
 public class PhoneNumberFragment extends Fragment {
     private static final String ARG_SECTION_NUMBER = "section_number";
     private static final int REQUEST_RUNTIME_PERMISSION = 123;
-    String[] permissons = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.CALL_PHONE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    String[] permissons = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.CALL_PHONE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION};
 
     public static ArrayList<Phonenumber> phonenumbers;
     public static ArrayList<Phonenumber> server_phonenumbers;
@@ -65,6 +68,8 @@ public class PhoneNumberFragment extends Fragment {
     FloatingActionButton itemFab;
     FloatingActionButton deleteFab;
     boolean isOpen=false;
+
+    EditText editTextFilter = null;
     public static PhoneNumberFragment newInstance(int index) {
         PhoneNumberFragment fragment = new PhoneNumberFragment();
         Bundle bundle = new Bundle();
@@ -113,6 +118,26 @@ public class PhoneNumberFragment extends Fragment {
         itemFab.setOnClickListener(this::onClick);
         deleteFab.setOnClickListener(this::onClick);
         read_contact();
+
+        editTextFilter = (EditText)view.findViewById(R.id.name_search) ;
+        editTextFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable edit) {
+                String filterText = edit.toString() ;
+                ((PhonenumberAdaptor)listView.getAdapter()).getFilter().filter(filterText) ;
+            }
+        });
+
         return view;
     }
 
@@ -131,9 +156,18 @@ public class PhoneNumberFragment extends Fragment {
                 }
                 break;
             case R.id.deletefab:
-                new JSONTask1().execute("http://192.249.18.166:3000/post");
+                if (MainActivity.islogin)
+                    new JSONTask1().execute("http://192.249.18.166:3000/post");
+                else
+                    Toast.makeText(getContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
+                adapter.notifyDataSetChanged();
+                break;
             case R.id.insertfab:
-                new JSONTask2().execute("http://192.249.18.166:3000/users");
+                if (MainActivity.islogin)
+                    new JSONTask2().execute("http://192.249.18.166:3000/users");
+                else
+                    Toast.makeText(getContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
+                adapter.notifyDataSetChanged();
                 break;
         }
     }
@@ -144,6 +178,7 @@ public class PhoneNumberFragment extends Fragment {
         @Override
         protected String doInBackground(String... urls) {
             for(int i=0; i<phonenumbers.size(); i++) {
+                System.out.println(i);
                 phonenumbers.get(i).setAtServer(true);
             }
             try {
@@ -165,6 +200,7 @@ public class PhoneNumberFragment extends Fragment {
                 }
                 try {
                     jsonObject.put("Contacts", newArray0);
+                    jsonObject.put("id", MainActivity.userid);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -236,6 +272,24 @@ public class PhoneNumberFragment extends Fragment {
                     URL url = new URL(urls[0]);
                     //연결을 함
                     con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("POST");//POST방식으로 보냄
+                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");
+                    con.setRequestProperty("Accept", "text/html");//서버에 response 데이터를 html로 받음
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+
+                    //서버로 보내기위해서 스트림 만듬
+                    OutputStream outStream = con.getOutputStream();
+                    //버퍼를 생성하고 넣음
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
+                    //System.out.println(temp.length());
+                    writer.write(MainActivity.userid);
+                    writer.flush();
+                    writer.close();//버퍼를 받아줌
+
+
                     InputStream stream = con.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(stream));
                     StringBuffer buffer = new StringBuffer();
@@ -267,32 +321,38 @@ public class PhoneNumberFragment extends Fragment {
         }
         @Override
         protected void onPostExecute(String result) {
-            JSONParser parser = new JSONParser();
-            try {
-                org.json.simple.JSONObject jsonObj = (org.json.simple.JSONObject)parser.parse(result);
-                org.json.simple.JSONArray contactArray = (org.json.simple.JSONArray) jsonObj.get("Contacts");
-                for (int i = 0; i < contactArray.size(); i++) {
-                    jsonObj =  (org.json.simple.JSONObject)contactArray.get(i);
-                    //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
-                    server_phonenumbers.add(new Phonenumber((String)jsonObj.get("name"), (String)jsonObj.get("number"), false, true));
-                    adapter.notifyDataSetChanged();
-                }
-                boolean dup=false;
-                for (int i=0; i<server_phonenumbers.size(); i++) {
-                    dup=false;
-                    for (int j=0;  j<phonenumbers.size(); j++) {
-                        if (server_phonenumbers.get(i).getName().equalsIgnoreCase(phonenumbers.get(j).getName()) && server_phonenumbers.get(i).getNumber().equalsIgnoreCase(phonenumbers.get(j).getNumber())) {
-                            dup=true;
-                            phonenumbers.get(j).setAtServer(true);
+            if (result == null){
+                Toast.makeText(getContext(), "데이터가 존재하지 않습니다.", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                System.out.println("download: " + result);
+                JSONParser parser = new JSONParser();
+                try {
+                    org.json.simple.JSONObject jsonObj = (org.json.simple.JSONObject) parser.parse(result);
+                    org.json.simple.JSONArray contactArray = (org.json.simple.JSONArray) jsonObj.get("Contacts");
+                    for (int i = 0; i < contactArray.size(); i++) {
+                        jsonObj = (org.json.simple.JSONObject) contactArray.get(i);
+                        //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
+                        server_phonenumbers.add(new Phonenumber((String) jsonObj.get("name"), (String) jsonObj.get("number"), false, true));
+                        adapter.notifyDataSetChanged();
+                    }
+                    boolean dup = false;
+                    for (int i = 0; i < server_phonenumbers.size(); i++) {
+                        dup = false;
+                        for (int j = 0; j < phonenumbers.size(); j++) {
+                            if (server_phonenumbers.get(i).getName().equalsIgnoreCase(phonenumbers.get(j).getName()) && server_phonenumbers.get(i).getNumber().equalsIgnoreCase(phonenumbers.get(j).getNumber())) {
+                                dup = true;
+                                phonenumbers.get(j).setAtServer(true);
+                            }
+                        }
+                        if (!dup) {
+                            phonenumbers.add(new Phonenumber(server_phonenumbers.get(i).getName(), server_phonenumbers.get(i).getNumber(), false, true));
                         }
                     }
-                    if (!dup) {
-                        phonenumbers.add(new Phonenumber(server_phonenumbers.get(i).getName(), server_phonenumbers.get(i).getNumber(), false, true));
-                    }
+                    adapter.notifyDataSetChanged();
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-                adapter.notifyDataSetChanged();
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
             super.onPostExecute(result);
         }

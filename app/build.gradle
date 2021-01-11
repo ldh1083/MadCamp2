@@ -12,6 +12,7 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,6 +30,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.mikhaellopez:circularimageview:4.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.navigation:navigation-fragment:2.2.2'
     implementation 'androidx.navigation:navigation-ui:2.2.2'
@@ -48,5 +50,7 @@ dependencies {
     implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'androidx.core:core:1.0.1'
     implementation 'com.android.support:design:28.0.0'
-
+    implementation 'com.google.android.libraries.maps:maps:3.1.0-beta'
+// If you are using Places, add all of the dependencies below
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
 }

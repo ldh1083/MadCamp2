@@ -2,8 +2,10 @@ package com.example.myapplication;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -28,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,6 +57,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
+
 public class galleryFragment extends Fragment {
     private static final String ARG_SECTION_NUMBER = "section_number";
     public static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -71,10 +76,10 @@ public class galleryFragment extends Fragment {
     ImageAdapter imageAdapter;
     String[] projection = {MediaStore.MediaColumns.DATA};
     File image;
+    Button delete;
     Button done;
     Button get;
     Uri uri;
-
 
     public static galleryFragment newInstance(int index) {
         galleryFragment fragment = new galleryFragment();
@@ -117,8 +122,11 @@ public class galleryFragment extends Fragment {
                     byte[] buffer=baos.toByteArray();
                     temp = Base64.encodeToString(buffer, Base64.DEFAULT);
                     //System.out.println(temp);
-                    new galleryFragment.JSONTask3().execute("http://192.249.18.166:3000/upimg");
-                    System.out.println(selectedImageList.get(i));
+                    if (MainActivity.islogin)
+                        new galleryFragment.JSONTask3().execute("http://192.249.18.166:3000/upimg");
+                    else
+                        Toast.makeText(getContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
+                    //System.out.println(selectedImageList.get(i));
                 }
             }
         });
@@ -127,8 +135,41 @@ public class galleryFragment extends Fragment {
         get.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new galleryFragment.JSONTask4().execute("http://192.249.18.166:3000/downimg");
+                if (MainActivity.islogin)
+                    new galleryFragment.JSONTask4().execute("http://192.249.18.166:3000/downimg");
+                else
+                    Toast.makeText(getContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        delete = view.findViewById(R.id.delete);
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i=0; i<selectedImageList.size(); i++) {
+                    System.out.println(selectedImageList.get(i));
+                    File d_file = new File(selectedImageList.get(i));
+                    d_file.delete();
+                    if (!d_file.exists()) {
+                        Cursor cursor = getContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+                        while (cursor.moveToNext()) {
+                            String absolutePathOfImage = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+                            //System.out.println(absolutePathOfImage);
+                            if (absolutePathOfImage.equalsIgnoreCase(selectedImageList.get(i))) {
+                                //System.out.println("hello");
+                                //long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                                int id = cursor.getInt(0);
+                                Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                                getContext().getContentResolver().delete(deleteUri, null, null);
+                            }
+                        }
+                        cursor.close();
+                    }
+                }
                 getAllImages();
+                setImageList();
+                setSelectedImageList();
+                imageAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -164,6 +205,8 @@ public class galleryFragment extends Fragment {
     public void setSelectedImageList() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         selectedImageRecyclerView.setLayoutManager(layoutManager);
+        /*FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.detach(this).attach(this).commit();*/
         //selectedImageAdapter = new SelectedImageAdapter(getActivity(), selectedImageList);
         //selectedImageRecyclerView.setAdapter(selectedImageAdapter);
     }
@@ -181,6 +224,7 @@ public class galleryFragment extends Fragment {
 
     // get all images from external storage
     public void getAllImages() {
+        selectedImageList.clear();
         imageList.clear();
         Cursor cursor = getContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, null);
         while (cursor.moveToNext()) {
@@ -217,9 +261,9 @@ public class galleryFragment extends Fragment {
 
     // Add image in SelectedArrayList
     public void selectImage(int position) {
+        System.out.println(imageList.get(position).getImage());
         // Check before add new item in ArrayList;
         if (!selectedImageList.contains(imageList.get(position).getImage())) {
-            
             imageList.get(position).setSelected(true);
             selectedImageList.add(0, imageList.get(position).getImage());
             //selectedImageAdapter.notifyDataSetChanged();
@@ -271,6 +315,7 @@ public class galleryFragment extends Fragment {
         }
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        //System.out.println("11" +mCurrentPhotoPath);
         return image;
     }
 
@@ -284,6 +329,7 @@ public class galleryFragment extends Fragment {
             }
             if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 if (mCurrentPhotoPath != null) {
+                    //System.out.println(mCurrentPhotoPath);
                     addImage(mCurrentPhotoPath);
                 }
             } else if (requestCode == PICK_IMAGES) {
@@ -297,6 +343,25 @@ public class galleryFragment extends Fragment {
                 } else if (data.getData() != null) {
                     Uri uri = data.getData();
                     getImageFilePath(uri);
+                }
+            }
+            else {
+                File file = new File(mCurrentPhotoPath);
+                file.delete();
+                if (!file.exists()) {
+                    Cursor cursor = getContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+                    while (cursor.moveToNext()) {
+                        String absolutePathOfImage = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+                        //System.out.println(absolutePathOfImage);
+                        if (absolutePathOfImage.equalsIgnoreCase(mCurrentPhotoPath)) {
+                            System.out.println("hello");
+                            //long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                            int id = cursor.getInt(0);
+                            Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                            getContext().getContentResolver().delete(deleteUri, null, null);
+                        }
+                    }
+                    cursor.close();
                 }
             }
         }
@@ -337,8 +402,8 @@ public class galleryFragment extends Fragment {
         imageModel.setImage(filePath.substring(6));
         imageModel.setSelected(true);
         imageList.add(imageList.size(), imageModel);
-        System.out.println(filePath.substring(6));
-        selectedImageList.add(0, filePath.substring(6));
+        //System.out.println(filePath.substring(6));
+        selectedImageList.add(0, filePath.substring(5));
         //selectedImageAdapter.notifyDataSetChanged();
         imageAdapter.notifyDataSetChanged();
     }
@@ -386,8 +451,8 @@ public class galleryFragment extends Fragment {
                     OutputStream outStream = con.getOutputStream();
                     //버퍼를 생성하고 넣음
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
-                    System.out.println(temp.length());
-                    writer.write(temp);
+                    //System.out.println(temp.length());
+                    writer.write(MainActivity.userid+temp);
                     writer.flush();
                     writer.close();//버퍼를 받아줌
                     /*bm.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
@@ -446,6 +511,23 @@ public class galleryFragment extends Fragment {
                     URL url = new URL(urls[0]);
                     //연결을 함
                     con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("POST");//POST방식으로 보냄
+                    con.setRequestProperty("Cache-Control", "no-cache");//캐시 설정
+                    con.setRequestProperty("Content-Type", "application/json");
+                    con.setRequestProperty("Accept", "text/html");//서버에 response 데이터를 html로 받음
+                    con.setDoOutput(true);//Outstream으로 post 데이터를 넘겨주겠다는 의미
+                    con.setDoInput(true);//Inputstream으로 서버로부터 응답을 받겠다는 의미
+                    con.connect();
+
+                    //서버로 보내기위해서 스트림 만듬
+                    OutputStream outStream = con.getOutputStream();
+                    //버퍼를 생성하고 넣음
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
+                    //System.out.println(temp.length());
+                    writer.write(MainActivity.userid);
+                    writer.flush();
+                    writer.close();//버퍼를 받아줌
+
                     InputStream stream = con.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(stream));
                     StringBuffer buffer = new StringBuffer();
@@ -477,60 +559,40 @@ public class galleryFragment extends Fragment {
         }
         @Override
         protected void onPostExecute(String result) {
-            //System.out.println("{\"image\":"+result+"}");
-            result = "{\"image\":"+result+"}";
-            JSONParser parser = new JSONParser();
-            ArrayList<String> arr = new ArrayList<>();
-            try {
-                org.json.simple.JSONObject jsonObj = (org.json.simple.JSONObject)parser.parse(result);
-                org.json.simple.JSONArray contactArray = (org.json.simple.JSONArray) jsonObj.get("image");
-                for (int i = 0; i < contactArray.size(); i++) {
-                    jsonObj =  (org.json.simple.JSONObject)contactArray.get(i);
-                    //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
-                    arr.add((String)jsonObj.get("body"));
-                }
-            } catch (ParseException e) {
-                e.printStackTrace();
+            if (result.length() == 2){
+                Toast.makeText(getContext(), "데이터가 존재하지 않습니다.", Toast.LENGTH_SHORT).show();
             }
-            //System.out.println(arr.size());
-            for (int i=0; i<arr.size(); i++) {
-                byte[] encodeByte = Base64.decode(arr.get(i), Base64.DEFAULT);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
-                String path = "/storage/emulated/0/Download";
-                System.out.println(Environment.getExternalStorageDirectory().toString());
-
-
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                String path1 = MediaStore.Images.Media.insertImage(getContext().getContentResolver(), bitmap, "Title", null);
-                ImageModel imageModel = new ImageModel();
-                imageModel.setImage(path1);
-                imageModel.setSelected(false);
-                imageList.add(imageModel);
-                imageAdapter.notifyDataSetChanged();
-
-
-                /*File dir = new File(path);
-                File fileCacheItem = new File(dir, ("img_"+(int)(Math.random()*1000)+".jpg"));
-                OutputStream out = null;
+            else {
+                System.out.println("{\"image\":" + result + "}");
+                result = "{\"image\":" + result + "}";
+                JSONParser parser = new JSONParser();
+                ArrayList<String> arr = new ArrayList<>();
                 try {
-                    System.out.println("hello");
-                    fileCacheItem.createNewFile();
-                    out = new FileOutputStream(fileCacheItem);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-                } catch (IOException e) {
-                    System.out.println("fail1");
+                    org.json.simple.JSONObject jsonObj = (org.json.simple.JSONObject) parser.parse(result);
+                    org.json.simple.JSONArray contactArray = (org.json.simple.JSONArray) jsonObj.get("image");
+                    for (int i = 0; i < contactArray.size(); i++) {
+                        jsonObj = (org.json.simple.JSONObject) contactArray.get(i);
+                        //System.out.println(jsonObj.getString("name")+ jsonObj.getString("number"));
+                        arr.add((String) jsonObj.get("body"));
+                    }
+                } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                finally {
-                    try {
-                        out.flush();
-                        out.close();
-                    } catch (IOException e) {
-                        System.out.println("fail2");
-                        e.printStackTrace();
-                    }
-                }*/
+                //System.out.println(arr.size());
+                for (int i = 0; i < arr.size(); i++) {
+                    byte[] encodeByte = Base64.decode(arr.get(i), Base64.DEFAULT);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
+                    //System.out.println(Environment.getExternalStorageDirectory().toString());
+
+
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                    String path1 = MediaStore.Images.Media.insertImage(getContext().getContentResolver(), bitmap, "Title", null);
+                    getAllImages();
+                    setImageList();
+                    setSelectedImageList();
+                    imageAdapter.notifyDataSetChanged();
+                }
             }
             super.onPostExecute(result);
         }

@@ -24,7 +24,7 @@ public class TabsAdaptor extends FragmentPagerAdapter {
             case 1:
                 return galleryFragment.newInstance(position + 1);
             case 2:
-                return GetContactDemoFragment.newInstance(position + 1);
+                return mapFragment.newInstance(position + 1);
             default:
                 return null;
         }

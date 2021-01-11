@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
@@ -21,6 +22,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
+    public static boolean islogin=false;
+    public static String userid = null;
     CallbackManager callbackManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
 
         callbackManager = CallbackManager.Factory.create();
 
-
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
         loginButton.setReadPermissions("email");
 
@@ -66,15 +68,13 @@ public class MainActivity extends AppCompatActivity {
                 AccessToken accessToken = loginResult.getAccessToken();
                 boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
                 System.out.println(accessToken.getUserId());
-                AccessToken accessToken2 = AccessToken.getCurrentAccessToken();
-                boolean isLoggedIn1 = accessToken2 != null && !accessToken2.isExpired();
-                System.out.println(accessToken.getUserId());
+                userid = accessToken.getUserId();
                 GraphRequest req = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
                     @Override
                     public void onCompleted(JSONObject object, GraphResponse response) {
-                        System.out.println(response.toString());
+                        //System.out.println(response.toString());
                         try {
-                            System.out.println(object.getString("name"));
+                            Toast.makeText(getApplicationContext(),"안녕하세요 "+object.getString("name")+"님", Toast.LENGTH_SHORT).show();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -95,32 +95,55 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
+
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken newAccessToken) {
                 AccessToken.setCurrentAccessToken(newAccessToken);
                 AccessToken accessToken2 = AccessToken.getCurrentAccessToken();
                 boolean isLoggedIn1 = accessToken2 != null && !accessToken2.isExpired();
                 if (isLoggedIn1) {
-                    System.out.println(accessToken2.getUserId());
+                    islogin = true;
+                    userid = accessToken2.getUserId();
                     GraphRequest req = GraphRequest.newMeRequest(accessToken2, new GraphRequest.GraphJSONObjectCallback() {
                         @Override
                         public void onCompleted(JSONObject object, GraphResponse response) {
-                            System.out.println(object.toString());
+                            try {
+                                Toast.makeText(getApplicationContext(),"안녕하세요 "+object.getString("name")+"님", Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
                     });
                     req.executeAsync();
-                    /*GraphRequest req = GraphRequest.newMeRequest(accessToken2, new GraphRequest.GraphJSONObjectCallback() {
-                        @Override
-                        public void onCompleted(JSONObject object, GraphResponse response) {
-                            System.out.println(object);
-                        }
-                    });*/
                 }
                 else {
-                    System.out.println("fail");
+                    islogin = false;
+                    userid = null;
                 }
             }
         };
+        AccessToken token;
+        token = AccessToken.getCurrentAccessToken();
+
+        if (token == null) {
+            islogin=false;
+        }
+        else {
+            GraphRequest req = GraphRequest.newMeRequest(token, new GraphRequest.GraphJSONObjectCallback() {
+                @Override
+                public void onCompleted(JSONObject object, GraphResponse response) {
+                    try {
+                        Toast.makeText(getApplicationContext(),"안녕하세요 "+object.getString("name")+"님", Toast.LENGTH_SHORT).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            req.executeAsync();
+            islogin = true;
+            userid = token.getUserId();
+            System.out.println(islogin+userid);
+        }
     }
 
     @Override
