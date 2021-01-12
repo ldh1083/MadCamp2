@@ -66,23 +66,23 @@ public class galleryFragment extends Fragment {
     public static final int STORAGE_PERMISSION = 100;
     String temp=null;
     String imageFileName;
-    ArrayList<ImageModel> imageList;
-    ArrayList<String> selectedImageList;
+    public static ArrayList<ImageModel> imageList;
+    public static ArrayList<String> selectedImageList;
     RecyclerView imageRecyclerView, selectedImageRecyclerView;
-    int[] resImg = {R.drawable.ic_camera_white_30dp, R.drawable.ic_folder_white_30dp};
-    String[] title = {"Camera", "Folder"};
+    int[] resImg = {R.drawable.ic_camera_white_30dp};
+    String[] title = {"Camera"};
     String mCurrentPhotoPath;
-//    SelectedImageAdapter selectedImageAdapter;
-    ImageAdapter imageAdapter;
-    String[] projection = {MediaStore.MediaColumns.DATA};
+    // SelectedImageAdapter selectedImageAdapter;
+    public static ImageAdapter imageAdapter;
+    public String[] projection = {MediaStore.MediaColumns.DATA};
     File image;
     Button delete;
     Button done;
     Button get;
     Uri uri;
-
+    public static galleryFragment fragment;
     public static galleryFragment newInstance(int index) {
-        galleryFragment fragment = new galleryFragment();
+        fragment = new galleryFragment();
         Bundle bundle = new Bundle();
         bundle.putInt(ARG_SECTION_NUMBER, index);
         fragment.setArguments(bundle);
@@ -103,6 +103,15 @@ public class galleryFragment extends Fragment {
             setImageList();
             setSelectedImageList();
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        getAllImages();
+        setImageList();
+        setSelectedImageList();
+        imageAdapter.notifyDataSetChanged();
+        super.onResume();
     }
 
     public void init(View view) {
@@ -184,8 +193,8 @@ public class galleryFragment extends Fragment {
             public void onItemClick(int position, View v) {
                 if (position == 0) {
                     takePicture();
-                } else if (position == 1) {
-                    getPickImageIntent();
+//                } else if (position == 1) {
+//                    getPickImageIntent();
                 } else {
                     try {
                         if (!imageList.get(position).isSelected) {
@@ -596,5 +605,12 @@ public class galleryFragment extends Fragment {
             }
             super.onPostExecute(result);
         }
+    }
+
+    public void refresh () {
+        getAllImages();
+        setImageList();
+        setSelectedImageList();
+        imageAdapter.notifyDataSetChanged();
     }
 }

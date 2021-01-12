@@ -25,13 +25,15 @@ public class MainActivity extends AppCompatActivity {
     public static boolean islogin=false;
     public static String userid = null;
     CallbackManager callbackManager;
+    CustomViewPager viewPager;
+    TabsAdaptor sectionsPagerAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TabsAdaptor sectionsPagerAdapter = new TabsAdaptor(this, getSupportFragmentManager());
-        CustomViewPager viewPager = findViewById(R.id.view_pager);
+        sectionsPagerAdapter = new TabsAdaptor(this, getSupportFragmentManager());
+        viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
         viewPager.setPagingEnabled(true);
 
@@ -150,5 +152,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void refresh() {
+        ((galleryFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + viewPager.getId() + ":" + sectionsPagerAdapter.getItemId(1))).refresh();
     }
 }

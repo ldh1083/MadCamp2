@@ -43,12 +43,13 @@ public class ImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     @Override
     public int getItemViewType(int position) {
-        return position < 2 ? IMAGE_PICKER : IMAGE_LIST;
+        return position < 1 ? IMAGE_PICKER : IMAGE_LIST;
     }
 
     @Override
     public  void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-        if (holder.getItemViewType() == IMAGE_LIST) {;
+        if (holder.getItemViewType() == IMAGE_LIST) {
+            ;
             final ImageListViewHolder viewHolder = (ImageListViewHolder) holder;
             Glide.with(context)
                     .load(imageList.get(position).getImage())
@@ -57,17 +58,18 @@ public class ImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                     .transition(DrawableTransitionOptions.withCrossFade(500))
                     .into(viewHolder.image);
 
-            if (imageList.get(position).isSelected()) {;
+            if (imageList.get(position).isSelected()) {
+                ;
                 viewHolder.checkBox.setChecked(true);
-            } else {;
+            } else {
+                ;
                 viewHolder.checkBox.setChecked(false);
             }
-        } else {;
+        } else {
+            ;
             ImagePickerViewHolder viewHolder = (ImagePickerViewHolder) holder;
             viewHolder.image.setImageResource(imageList.get(position).getResImg());
             viewHolder.title.setText(imageList.get(position).getTitle());
-
-
         }
 
     }

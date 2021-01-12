@@ -13,11 +13,12 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/name"/>
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
         android:layout_margin="20dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="bottom">
         <TextView
             android:id="@+id/info_name"
             android:layout_width="wrap_content"
@@ -25,7 +26,8 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_gravity="center"/>
         <TextView
             android:id="@+id/info_memo"
             android:layout_width="wrap_content"
@@ -34,6 +36,15 @@
             android:layout_marginTop="8dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            />
+            android:layout_gravity="center"
+            android:layout_marginBottom="50dp"/>
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="30dp"
+            android:layout_gravity="right"
+            android:background="@color/transparent"
+            android:text="Save Image"
+            android:textColor="@color/black"
+            android:textSize="8dp"/>
     </LinearLayout>
 </LinearLayout>

@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,6 +18,8 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.LayoutInflater;
@@ -35,6 +38,7 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,6 +48,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
@@ -55,12 +60,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.SearchView;
+import androidx.fragment.app.FragmentManager;
 
 import org.json.JSONException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 public class mapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     private static final String ARG_SECTION_NUMBER = "section_number1";
@@ -133,7 +141,59 @@ public class mapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setOnInfoWindowLongClickListener(this::onMarkerClick);
-        //map.setOnMarkerClickListener(this::onMarkerClick);
+        /*map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                View layout = inflater.inflate(R.layout.imagefrommap, null);
+                AlertDialog.Builder aDialog = new AlertDialog.Builder(getContext());
+                aDialog.setTitle("상세 정보");
+                aDialog.setView(layout);
+                aDialog.setPositiveButton("취소", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+                AlertDialog ad = aDialog.create();
+                ad.show();
+                return true;
+            }
+        });*/
+        map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                View layout = inflater.inflate(R.layout.imagefrommap, null);
+                AlertDialog.Builder aDialog = new AlertDialog.Builder(getContext());
+                aDialog.setTitle("Download");
+                aDialog.setView(layout);
+                aDialog.setPositiveButton("취소", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+                aDialog.setNegativeButton("저장", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        boolean exist=false;
+                        String encodedString=null;
+                        for (int i=0; i<mapList.size(); i++) {
+                            if (mapList.get(i).getMarker_name().equalsIgnoreCase(marker.getTitle())) {
+                                exist = true;
+                                encodedString = mapList.get(i).getBm();
+                            }
+                        }
+                        if (exist) {
+                            byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
+                            Bitmap bm = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
+                            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                            bm.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                            String path1 = MediaStore.Images.Media.insertImage(getContext().getContentResolver(), bm, "Title", null);
+                            ((MainActivity) getActivity()).refresh();
+                        }
+                    }
+                });
+                AlertDialog ad = aDialog.create();
+                ad.show();
+            }
+        });
         map.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
             // Use default InfoWindow frame
             @Override
@@ -423,7 +483,7 @@ public class mapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     //버퍼를 생성하고 넣음
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outStream));
                     //System.out.println(temp.length());
-                    writer.write(MainActivity.userid);
+                    writer.write("ok");
                     writer.flush();
                     writer.close();//버퍼를 받아줌
 
