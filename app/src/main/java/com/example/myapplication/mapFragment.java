@@ -135,6 +135,9 @@ public class mapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
         });
         mapFragment.getMapAsync(this);
+
+
+
         return view;
     }
     @Override
@@ -542,6 +545,25 @@ public class mapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
+                }
+            }
+
+            /* load markers on server */
+            for (int i=0; i<mapList.size(); i++) {
+                String location = mapList.get(i).getMarker_name();
+                List<Address> addressList = null;
+                if(location != null || !location.equals("")){
+                    Geocoder geocoder = new Geocoder(getActivity());
+                    try{
+                        addressList = geocoder.getFromLocationName(location,1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Address address = addressList.get(0);
+                    LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                    Marker marker = map.addMarker(new MarkerOptions().position(latLng));
+                    marker.setTitle(location);
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,10));
                 }
             }
             super.onPostExecute(result);
